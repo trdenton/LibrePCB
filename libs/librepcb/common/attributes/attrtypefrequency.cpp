@@ -38,7 +38,7 @@ AttrTypeFrequency::AttrTypeFrequency() noexcept :
 {
     mDefaultUnit = new AttributeUnit("hertz", tr("Hz"));
 
-    mAvailableUnits.append(new AttributeUnit("microhertz",   tr("μHz")));
+    mAvailableUnits.append(new AttributeUnit("microhertz",   tr("µHz")));
     mAvailableUnits.append(new AttributeUnit("millihertz",   tr("mHz")));
     mAvailableUnits.append(mDefaultUnit);
     mAvailableUnits.append(new AttributeUnit("kilohertz",    tr("kHz")));

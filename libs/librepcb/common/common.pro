@@ -61,6 +61,7 @@ SOURCES += \
     fileio/smarttextfile.cpp \
     fileio/smartversionfile.cpp \
     fileio/smartxmlfile.cpp \
+    font/font.cpp \
     geometry/cmd/cmdellipseedit.cpp \
     geometry/cmd/cmdholeedit.cpp \
     geometry/cmd/cmdpolygonedit.cpp \
@@ -157,6 +158,7 @@ HEADERS += \
     fileio/smarttextfile.h \
     fileio/smartversionfile.h \
     fileio/smartxmlfile.h \
+    font/font.h \
     geometry/cmd/cmdellipseedit.h \
     geometry/cmd/cmdholeedit.h \
     geometry/cmd/cmdpolygonedit.h \

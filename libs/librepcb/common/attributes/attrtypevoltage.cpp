@@ -39,7 +39,7 @@ AttrTypeVoltage::AttrTypeVoltage() noexcept :
     mDefaultUnit = new AttributeUnit("volt", tr("V"));
 
     mAvailableUnits.append(new AttributeUnit("nanovolt",    tr("nV")));
-    mAvailableUnits.append(new AttributeUnit("microvolt",   tr("μV")));
+    mAvailableUnits.append(new AttributeUnit("microvolt",   tr("µV")));
     mAvailableUnits.append(new AttributeUnit("millivolt",   tr("mV")));
     mAvailableUnits.append(mDefaultUnit);
     mAvailableUnits.append(new AttributeUnit("kilovolt",    tr("kV")));

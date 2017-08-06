@@ -39,7 +39,7 @@ AttrTypeInductance::AttrTypeInductance() noexcept :
     mDefaultUnit = new AttributeUnit("millihenry", tr("mH"));
 
     mAvailableUnits.append(new AttributeUnit("nanohenry",   tr("nH")));
-    mAvailableUnits.append(new AttributeUnit("microhenry",  tr("μH")));
+    mAvailableUnits.append(new AttributeUnit("microhenry",  tr("µH")));
     mAvailableUnits.append(mDefaultUnit);
     mAvailableUnits.append(new AttributeUnit("henry",       tr("H")));
 }

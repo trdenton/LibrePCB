@@ -38,6 +38,8 @@
 namespace librepcb {
 namespace project {
 
+RS_Font* BGI_Footprint::mFont = nullptr;
+
 /*****************************************************************************************
  *  Constructors / Destructor
  ****************************************************************************************/
@@ -45,9 +47,12 @@ namespace project {
 BGI_Footprint::BGI_Footprint(BI_Footprint& footprint) noexcept :
     BGI_Base(), mFootprint(footprint), mLibFootprint(footprint.getLibFootprint())
 {
-    mFont.setStyleStrategy(QFont::StyleStrategy(QFont::OpenGLCompatible | QFont::PreferQuality));
-    mFont.setStyleHint(QFont::SansSerif);
-    mFont.setFamily("Nimbus Sans L");
+    if (!mFont) {
+        mFont = new RS_Font("/media/Daten/Eigene_Dateien/Programmieren/Qt/LibrePCB/"
+                            "LibrePCB/share/librepcb/fonts/unicode.lff");
+        mFont->loadFont();
+        mFont->generateAllFonts();
+    }
 
     updateCacheAndRepaint();
 }
@@ -112,54 +117,18 @@ void BGI_Footprint::updateCacheAndRepaint() noexcept
     }
 
     // texts
-    mCachedTextProperties.clear();
     for (const Text& text : mLibFootprint.getTexts()) {
         layer = getLayer(text.getLayerName());
         if (!layer) continue;
         if (!layer->isVisible()) continue;
 
-        // create static text properties
-        CachedTextProperties_t props;
-
-        // get the text to display
-        props.text = AttributeSubstitutor::substitute(text.getText(), &mFootprint);
-
-        // calculate font metrics
-        props.fontPixelSize = qCeil(text.getHeight().toPx());
-        mFont.setPixelSize(props.fontPixelSize);
-        QFontMetricsF metrics(mFont);
-        props.scaleFactor = text.getHeight().toPx() / metrics.height();
-        props.textRect = metrics.boundingRect(QRectF(), text.getAlign().toQtAlign() |
-                                              Qt::TextDontClip, props.text);
-        QRectF scaledTextRect = QRectF(props.textRect.topLeft() * props.scaleFactor,
-                                       props.textRect.bottomRight() * props.scaleFactor);
-
-        // check rotation
-        Angle absAngle = text.getRotation() + mFootprint.getRotation();
-        absAngle.mapTo180deg();
-        props.rotate180 = (absAngle <= -Angle::deg90() || absAngle > Angle::deg90());
-
-        // calculate text position
-        scaledTextRect.translate(text.getPosition().toPxQPointF());
-
-        // text alignment
-        if (props.rotate180)
-            props.flags = text.getAlign().mirrored().toQtAlign();
-        else
-            props.flags = text.getAlign().toQtAlign();
-
-        // calculate text bounding rect
-        mBoundingRect = mBoundingRect.united(scaledTextRect);
-        props.textRect = QRectF(scaledTextRect.topLeft() / props.scaleFactor,
-                                scaledTextRect.bottomRight() / props.scaleFactor);
-        if (props.rotate180)
-        {
-            props.textRect = QRectF(-props.textRect.x(), -props.textRect.y(),
-                                    -props.textRect.width(), -props.textRect.height()).normalized();
+        foreach (const QChar& ch, text.getText()) {
+            foreach (const Polygon* polygon, mFont->getLetters().value(ch)) {
+                QPainterPath polygonPath = polygon->toQPainterPathPx();
+                qreal w = polygon->getLineWidth().toPx() / 2;
+                mBoundingRect = mBoundingRect.united(polygonPath.boundingRect().adjusted(-w, -w, w, w));
+            }
         }
-
-        // save properties
-        mCachedTextProperties.insert(&text, props);
     }
 
     if (!mShape.isEmpty())
@@ -258,40 +227,36 @@ void BGI_Footprint::paint(QPainter* painter, const QStyleOptionGraphicsItem* opt
         if (!layer) continue;
         if (!layer->isVisible()) continue;
 
-        // get cached text properties
-        const CachedTextProperties_t& props = mCachedTextProperties.value(&text);
-        mFont.setPixelSize(props.fontPixelSize);
-
-        // draw text or rect
+        // draw polygons
         painter->save();
-        painter->translate(text.getPosition().toPxQPointF());
-        painter->rotate(-text.getRotation().toDeg());
-        painter->translate(-text.getPosition().toPxQPointF());
-        painter->scale(props.scaleFactor, props.scaleFactor);
-        if (props.rotate180) painter->rotate(180);
-        if ((deviceIsPrinter) || (lod * text.getHeight().toPx() > 8))
-        {
-            // draw text
-            painter->setPen(QPen(layer->getColor(selected), 0));
-            painter->setFont(mFont);
-            painter->drawText(props.textRect, props.flags, props.text);
+        painter->scale(text.getHeight().toMm() / 20, text.getHeight().toMm() / 20);
+        Angle absAngle = text.getRotation() + mFootprint.getRotation();
+        absAngle.mapTo180deg();
+        if (absAngle <= -Angle::deg90() || absAngle > Angle::deg90()) {
+            painter->rotate(180);
         }
-        else
-        {
-            // fill rect
-            painter->fillRect(props.textRect, QBrush(layer->getColor(selected), Qt::Dense5Pattern));
-        }
-#ifdef QT_DEBUG
-        layer = getLayer(GraphicsLayer::sDebugGraphicsItemsTextsBoundingRects);
-        if (layer) {
-            if (layer->isVisible()) {
-                // draw text bounding rect
-                painter->setPen(QPen(layer->getColor(selected), 0));
-                painter->setBrush(Qt::NoBrush);
-                painter->drawRect(props.textRect);
+        QString string = AttributeSubstitutor::substitute(text.getText(), &mFootprint);
+        Point offset;
+        Length width = Length::fromMm(1.0);
+        foreach (const QChar& ch, string) {
+            if (mFont->getLetters().contains(QString(ch))) {
+                QRectF boundingRect;
+                foreach (const Polygon* polygon, mFont->getLetters().value(QString(ch))) {
+                    painter->setPen(QPen(layer->getColor(selected), width.toPx(), Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+                    painter->setBrush(Qt::NoBrush);
+                    painter->drawPath(polygon->translated(offset + text.getPosition()).toQPainterPathPx());
+                    boundingRect = boundingRect.united(polygon->toQPainterPathPx().boundingRect());
+                }
+                //boundingRect.adjust(-width.toPx(), -width.toPx(), width.toPx(), width.toPx());
+                offset.setX(offset.getX() + Length::fromPx(boundingRect.width()) +
+                            Length::fromMm(mFont->getLetterSpacing()));
+            } else if (ch == '\n') {
+                offset.setX(Length(0));
+                offset.setY(offset.getY() - text.getHeight() * 8);
+            } else {
+                qDebug() << "Letter not found:" << ch;
             }
         }
-#endif
         painter->restore();
     }
 

@@ -38,7 +38,7 @@ AttrTypeResistance::AttrTypeResistance() noexcept :
 {
     mDefaultUnit = new AttributeUnit("ohm", tr("Ω"));
 
-    mAvailableUnits.append(new AttributeUnit("microohm",   tr("μΩ")));
+    mAvailableUnits.append(new AttributeUnit("microohm",   tr("µΩ")));
     mAvailableUnits.append(new AttributeUnit("milliohm",   tr("mΩ")));
     mAvailableUnits.append(mDefaultUnit);
     mAvailableUnits.append(new AttributeUnit("kiloohm",    tr("kΩ")));
