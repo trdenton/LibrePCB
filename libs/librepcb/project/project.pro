@@ -39,6 +39,7 @@ SOURCES += \
     boards/cmd/cmddeviceinstanceadd.cpp \
     boards/cmd/cmddeviceinstanceedit.cpp \
     boards/cmd/cmddeviceinstanceremove.cpp \
+    boards/graphicsitems/bgi_airwire.cpp \
     boards/graphicsitems/bgi_base.cpp \
     boards/graphicsitems/bgi_footprint.cpp \
     boards/graphicsitems/bgi_footprintpad.cpp \
@@ -46,6 +47,7 @@ SOURCES += \
     boards/graphicsitems/bgi_netpoint.cpp \
     boards/graphicsitems/bgi_polygon.cpp \
     boards/graphicsitems/bgi_via.cpp \
+    boards/items/bi_airwire.cpp \
     boards/items/bi_base.cpp \
     boards/items/bi_device.cpp \
     boards/items/bi_footprint.cpp \
@@ -130,6 +132,7 @@ HEADERS += \
     boards/cmd/cmddeviceinstanceadd.h \
     boards/cmd/cmddeviceinstanceedit.h \
     boards/cmd/cmddeviceinstanceremove.h \
+    boards/graphicsitems/bgi_airwire.h \
     boards/graphicsitems/bgi_base.h \
     boards/graphicsitems/bgi_footprint.h \
     boards/graphicsitems/bgi_footprintpad.h \
@@ -137,6 +140,7 @@ HEADERS += \
     boards/graphicsitems/bgi_netpoint.h \
     boards/graphicsitems/bgi_polygon.h \
     boards/graphicsitems/bgi_via.h \
+    boards/items/bi_airwire.h \
     boards/items/bi_base.h \
     boards/items/bi_device.h \
     boards/items/bi_footprint.h \

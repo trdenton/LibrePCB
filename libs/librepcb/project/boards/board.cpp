@@ -34,6 +34,7 @@
 #include "../circuit/circuit.h"
 #include "../erc/ercmsg.h"
 #include "../circuit/componentinstance.h"
+#include "../circuit/componentsignalinstance.h"
 #include "items/bi_device.h"
 #include "items/bi_footprint.h"
 #include "items/bi_footprintpad.h"
@@ -41,6 +42,7 @@
 #include "items/bi_netsegment.h"
 #include "items/bi_netpoint.h"
 #include "items/bi_netline.h"
+#include "items/bi_airwire.h"
 #include <librepcb/library/cmp/component.h>
 #include "items/bi_polygon.h"
 #include "boardlayerstack.h"
@@ -122,6 +124,7 @@ Board::Board(const Board& other, const FilePath& filepath, const QString& name) 
     {
         // free the allocated memory in the reverse order of their allocation...
         qDeleteAll(mErcMsgListUnplacedComponentInstances);    mErcMsgListUnplacedComponentInstances.clear();
+        qDeleteAll(mAirWires);          mAirWires.clear();
         qDeleteAll(mPolygons);          mPolygons.clear();
         qDeleteAll(mNetSegments);       mNetSegments.clear();
         qDeleteAll(mDeviceInstances);   mDeviceInstances.clear();
@@ -215,6 +218,7 @@ Board::Board(Project& project, const FilePath& filepath, bool restore,
             }
         }
 
+        updateAirWires();
         updateErcMessages();
         updateIcon();
 
@@ -230,6 +234,7 @@ Board::Board(Project& project, const FilePath& filepath, bool restore,
     {
         // free the allocated memory in the reverse order of their allocation...
         qDeleteAll(mErcMsgListUnplacedComponentInstances);    mErcMsgListUnplacedComponentInstances.clear();
+        qDeleteAll(mAirWires);          mAirWires.clear();
         qDeleteAll(mPolygons);          mPolygons.clear();
         qDeleteAll(mNetSegments);       mNetSegments.clear();
         qDeleteAll(mDeviceInstances);   mDeviceInstances.clear();
@@ -250,6 +255,7 @@ Board::~Board() noexcept
     qDeleteAll(mErcMsgListUnplacedComponentInstances);    mErcMsgListUnplacedComponentInstances.clear();
 
     // delete all items
+    qDeleteAll(mAirWires);          mAirWires.clear();
     qDeleteAll(mPolygons);          mPolygons.clear();
     qDeleteAll(mNetSegments);       mNetSegments.clear();
     qDeleteAll(mDeviceInstances);   mDeviceInstances.clear();
@@ -374,6 +380,8 @@ QList<BI_Base*> Board::getAllItems() const noexcept
         items.append(netsegment);
     foreach (BI_Polygon* polygon, mPolygons)
         items.append(polygon);
+    foreach (BI_AirWire* airWire, mAirWires)
+        items.append(airWire);
     return items;
 }
 
@@ -423,6 +431,7 @@ void Board::removeDeviceInstance(BI_Device& instance)
     mDeviceInstances.remove(instance.getComponentInstanceUuid());
     updateErcMessages();
     emit deviceRemoved(instance);
+    updateAirWires();
 }
 
 /*****************************************************************************************
@@ -598,6 +607,32 @@ std::unique_ptr<BoardSelectionQuery> Board::createSelectionQuery() const noexcep
     return std::unique_ptr<BoardSelectionQuery>(
         new BoardSelectionQuery(mDeviceInstances, mNetSegments, mPolygons,
                                 const_cast<Board*>(this)));
+}
+
+void Board::updateAirWires() noexcept
+{
+    try {
+        foreach (BI_AirWire* airWire, mAirWires) {
+            if (mIsAddedToProject) {
+                airWire->removeFromBoard(); // can throw
+            }
+            mAirWires.removeOne(airWire);
+        }
+        Q_ASSERT(mAirWires.isEmpty());
+        foreach (NetSignal* netsignal, mProject.getCircuit().getNetSignals()) { Q_ASSERT(netsignal);
+            foreach (ComponentSignalInstance* cmpSig, netsignal->getComponentSignals()) { Q_ASSERT(cmpSig);
+                foreach (BI_FootprintPad* pad, cmpSig->getRegisteredFootprintPads()) {
+                    QScopedPointer<BI_AirWire> airWire(new BI_AirWire(*this, Point(), pad->getPosition()));
+                    if (mIsAddedToProject) {
+                        airWire->addToBoard(); // can throw
+                    }
+                    mAirWires.append(airWire.take());
+                }
+            }
+        }
+    } catch (const Exception& e) {
+        // TODO: what to do here?
+    }
 }
 
 /*****************************************************************************************

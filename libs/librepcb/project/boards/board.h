@@ -58,6 +58,7 @@ class BI_NetSegment;
 class BI_NetPoint;
 class BI_NetLine;
 class BI_Polygon;
+class BI_AirWire;
 class BoardLayerStack;
 class BoardUserSettings;
 class BoardSelectionQuery;
@@ -161,6 +162,7 @@ class Board final : public QObject, public AttributeProvider,
         void setSelectionRect(const Point& p1, const Point& p2, bool updateItems) noexcept;
         void clearSelection() const noexcept;
         std::unique_ptr<BoardSelectionQuery> createSelectionQuery() const noexcept;
+        void updateAirWires() noexcept;
 
         // Inherited from AttributeProvider
         /// @copydoc librepcb::AttributeProvider::getBuiltInAttributeValue()
@@ -221,6 +223,7 @@ class Board final : public QObject, public AttributeProvider,
         QMap<Uuid, BI_Device*> mDeviceInstances;
         QList<BI_NetSegment*> mNetSegments;
         QList<BI_Polygon*> mPolygons;
+        QList<BI_AirWire*> mAirWires;
 
         // ERC messages
         QHash<Uuid, ErcMsg*> mErcMsgListUnplacedComponentInstances;
