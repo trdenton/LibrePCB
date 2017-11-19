@@ -257,6 +257,7 @@ void GraphicsLayer::getDefaultValues(const QString& name, QString& nameTr, QColo
         h.insert(sBoardDrillsNpth,          {tr("Drills (NPTH)"),               QColor(255, 255, 255, 150), QColor(255, 255, 255, 220), true});
         h.insert(sBoardPadsTht,             {tr("Pads"),                        QColor(0, 255, 0, 150),     QColor(0, 255, 0, 220),     true});
         h.insert(sBoardViasTht,             {tr("Vias"),                        QColor(0, 255, 0, 150),     QColor(0, 255, 0, 220),     true});
+        h.insert(sBoardAirWires,            {tr("Air Wires"),                   Qt::yellow,                 Qt::yellow,                 true});
         h.insert(sBoardMeasures,            {tr("Measures"),                    Qt::lightGray,              Qt::gray,                   true});
         h.insert(sBoardAlignment,           {tr("Alignment"),                   Qt::darkCyan,               Qt::cyan,                   true});
         h.insert(sBoardDocumentation,       {tr("Documentation"),               Qt::white,                  Qt::lightGray,              true});

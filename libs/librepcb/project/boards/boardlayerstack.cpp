@@ -131,6 +131,7 @@ void BoardLayerStack::addAllLayers() noexcept
     addLayer(GraphicsLayer::sBoardDrillsNpth);
     addLayer(GraphicsLayer::sBoardViasTht);
     addLayer(GraphicsLayer::sBoardPadsTht);
+    addLayer(GraphicsLayer::sBoardAirWires);
 
     // copper layers
     addLayer(GraphicsLayer::sTopCopper);
