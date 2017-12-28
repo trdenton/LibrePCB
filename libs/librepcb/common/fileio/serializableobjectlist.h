@@ -374,6 +374,20 @@ class SerializableObjectList : public SerializableObject
 } // namespace librepcb
 
 /*****************************************************************************************
+ * Prevent from using SerializableObjectList in a foreach loop because it always would
+ * create a deep copy of the list! You should use C++11 range based for loops instead.
+ ****************************************************************************************/
+
+template <typename T, typename P>
+class QForeachContainer<librepcb::SerializableObjectList<T, P>> { public:
+    ~QForeachContainer() = delete;
+};
+template <typename T, typename P>
+class QForeachContainer<const librepcb::SerializableObjectList<T, P>> { public:
+    ~QForeachContainer() = delete;
+};
+
+/*****************************************************************************************
  *  End of File
  ****************************************************************************************/
 
